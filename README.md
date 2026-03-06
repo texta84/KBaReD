@@ -47,3 +47,7 @@ Despues de instalar la dependencia **qdbus** será necesario crear un enlace sim
 * Cuando se localice la ruta donde se encuentra crear en enlace simbólico
     ```bash
     sudo ln -s /usr/lib/qt6/bin/qdbus /usr/bin/qdbus
+
+### Ejecución
+* Para ejecutarlo baja el script ```git clone https://github.com/texta84/KBaReD.git```, asignar permisos de ejecución ```chmod +x KBaReD.sh``` y ejecutarlo ```./KBaReD.sh```
+* Puedes crear un enlace simbólico para ejecutarlo desde la consola solo escribiendo **KBaReD**, lo puedes hacer de esta forma ```sudo ln -s /home/user/KBaReD.sh /usr/bin/KBaReD``` y en la terminal solo escribes ```KBaReD``` para ejecutarlo
