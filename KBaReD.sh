@@ -50,7 +50,7 @@ if [ "$?" = 0 ]; then
                                 database=${file_name%%.*}
                                 sleep 1;
                                 qdbus $progress Set "" value $i > /dev/null;
-                                qdbus $progress setLabelText "Importando: $database" > /dev/null;
+                                qdbus $progress setLabelText "SERVIDOR: ${DB_HOST^^}<br><br>Importando: $database" > /dev/null;
                                 if ! qdbus $progress Set "" value $i > /dev/null; then
                                     echo "Process cancelled."
                                     kdialog --error "Proceso cancelado."
@@ -103,7 +103,7 @@ if [ "$?" = 0 ]; then
                             for database in ${DB_SELECTED[@]}; do
                                 sleep 1;
                                 qdbus $progress Set "" value $i > /dev/null;
-                                qdbus $progress setLabelText "Exportando: $database" > /dev/null;
+                                qdbus $progress setLabelText "SERVIDOR: ${DB_HOST^^}<br><br>Exportando: $database" > /dev/null;
                                 if ! qdbus $progress Set "" value $i > /dev/null; then
                                     echo "Process cancelled."
                                     kdialog --error "Proceso cancelado."
@@ -160,7 +160,7 @@ if [ "$?" = 0 ]; then
                             for database in ${DB_SELECTED[@]}; do
                                 sleep 1;
                                 qdbus $progress Set "" value $i > /dev/null;
-                                qdbus $progress setLabelText "Eliminando: $database" > /dev/null;
+                                qdbus $progress setLabelText "SERVIDOR: ${DB_HOST^^}<br><br>Eliminando: $database" > /dev/null;
                                 if ! qdbus $progress Set "" value $i > /dev/null; then
                                     echo "Process cancelled."
                                     kdialog --error "Proceso cancelado."
