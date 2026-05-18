@@ -50,17 +50,21 @@ Despues de instalar la dependencia **qdbus** será necesario crear un enlace sim
 
 ### Ejecución
 * Método 1:
-   * Clona el script ```git clone https://github.com/texta84/KBaReD.git```
-   * Entra a la carpeta ```cd KBaReD```
+   * Clonar el script ```git clone https://github.com/texta84/KBaReD.git```
+   * Entrar a la carpeta ```cd KBaReD```
    * Asignar permisos de ejecución ```chmod +x KBaReD.sh```
-   * Ejecutarlo ```./KBaReD.sh```
+   * Ejecutar ```./KBaReD.sh```
 
 * Método 2 (Crear un enlace simbólico):
-   * Clona el script ```git clone https://github.com/texta84/KBaReD.git```
-   * Enlace simbólico ```sudo ln -s /home/user/KBaReD.sh /usr/bin/KBaReD```
-   * Ejecutarlo ```KBaReD```
+   * Clonar el script ```git clone https://github.com/texta84/KBaReD.git```
+   * Entrar a la carpeta ```cd KBaReD```
+   * Asignar permisos de ejecución ```chmod +x KBaReD.sh```
+   * Crear enlace simbólico ```sudo ln -s /home/$USER/KBaReD/KBaReD.sh /usr/bin/KBaReD```
+   * Ejecutar ```KBaReD```
 
 * Método 3 (Mover Archivo **sh**):
-   * Clona el script ```git clone https://github.com/texta84/KBaReD.git```
-   * Mover el archivo ```sh``` a la carpeta ```/usr/bin``` de esta manera ```sudo mv /home/user/KBaReD/KBaReD.sh /usr/bin/KBaReD```
-   * Ejecutarlo ```KBaReD```
+   * Clonar el script ```git clone https://github.com/texta84/KBaReD.git```
+   * Entrar a la carpeta ```cd KBaReD```
+   * Asignar permisos de ejecución ```chmod +x KBaReD.sh```
+   * Mover el archivo ```sh``` a la carpeta ```/usr/bin``` de esta manera ```sudo mv /home/$USER/KBaReD/KBaReD.sh /usr/bin/KBaReD```
+   * Ejecutar ```KBaReD```
