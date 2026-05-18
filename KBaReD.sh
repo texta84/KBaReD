@@ -25,6 +25,10 @@ KKKKKKKKK    KKKKKKKBBBBBBBBBBBBBBBBB     aaaaaaaaaa  aaaaRRRRRRRR     RRRRRRR  
 
 "
 DB_TITLE="KBaReD - @texta84"
+DB_MYSQL="mariadb" #mysql
+DB_DUMP="mariadb-dump" #mysqldump
+DB_ADMIN="mariadb-admin" #mysqladmin
+DB_QDBUS="qdbus" #/usr/lib64/qt6/bin/qdbus or /usr/bin/qdbus
 DB_USER=$(kdialog --title "$DB_TITLE" --geometry 250x26 --inputbox "Usuario:");
 if [ "$?" = 0 ]; then
     DB_PASSWORD=$(kdialog --title "$DB_TITLE" --password "Password:");
@@ -32,6 +36,11 @@ if [ "$?" = 0 ]; then
         DB_PORT=$(kdialog --title "$DB_TITLE" --geometry 250x26 --inputbox "Puerto:" "3306");
         if [ "$?" = 0 ]; then
             DB_HOST=$(kdialog --title "$DB_TITLE" --geometry 250x26 --inputbox "Servidor:" "127.0.0.1");
+            kdialog --yesno "¿Deshabilitar conexión encriptada?";
+            if [ "$?" = 0 ]; then
+                DB_ENCRYPT="--skip-ssl"
+                echo "Unencrypted connection: $DB_ENCRYPT"
+            fi;
             if [ "$?" = 0 ]; then
                 DB_PROCESS=$(kdialog --title "$DB_TITLE" --geometry 250x26 --combobox "Elije una opción:" "Exportar" "Importar" "Eliminar" --default "Exportar");
                 if [ "$DB_PROCESS" == "Importar" ]
@@ -49,18 +58,18 @@ if [ "$?" = 0 ]; then
                                 file_name=$(basename "$sql_file")
                                 database=${file_name%%.*}
                                 sleep 1;
-                                qdbus $progress Set "" value $i > /dev/null;
-                                qdbus $progress setLabelText "SERVIDOR: ${DB_HOST^^}<br><br>Importando: $database" > /dev/null;
-                                if ! qdbus $progress Set "" value $i > /dev/null; then
+                                "$DB_QDBUS" $progress Set "" value $i > /dev/null;
+                                "$DB_QDBUS" $progress setLabelText "SERVIDOR: ${DB_HOST^^}<br><br>Importando: $database" > /dev/null;
+                                if ! "$DB_QDBUS" $progress Set "" value $i > /dev/null; then
                                     echo "Process cancelled."
                                     kdialog --error "Proceso cancelado."
-                                    qdbus $progress close
+                                    "$DB_QDBUS" $progress close
                                     exit 1
                                 fi
                                 echo -e "\nDatabase \"$database\" importing"
-                                mysqladmin -u "$DB_USER" -p"$DB_PASSWORD" -P"$DB_PORT" -h"$DB_HOST" -f drop "$database" 2>/dev/null || true
-                                mysqladmin -u "$DB_USER" -p"$DB_PASSWORD" -P"$DB_PORT" -h"$DB_HOST" create "$database"
-                                mysql -u "$DB_USER" -p"$DB_PASSWORD" -P"$DB_PORT" -h"$DB_HOST" -f "$database" < "$sql_file"
+                                "$DB_ADMIN" -u "$DB_USER" -p"$DB_PASSWORD" -P"$DB_PORT" -h"$DB_HOST" "$DB_ENCRYPT" -f drop "$database" 2>/dev/null || true
+                                "$DB_ADMIN" -u "$DB_USER" -p"$DB_PASSWORD" -P"$DB_PORT" -h"$DB_HOST" "$DB_ENCRYPT" -f create "$database"
+                                "$DB_MYSQL" -u "$DB_USER" -p"$DB_PASSWORD" -P"$DB_PORT" -h"$DB_HOST" "$DB_ENCRYPT" -f "$database" < "$sql_file"
                                 if [ $? -eq 0 ]; then
                                     echo "Database \"$database\" imported"
                                 else
@@ -70,7 +79,7 @@ if [ "$?" = 0 ]; then
                             ((i++))
                         done
                         sleep 1;
-                        qdbus $progress close > /dev/null;
+                        "$DB_QDBUS" $progress close > /dev/null;
                     fi
                     echo -e "\nThe import process is complete"
                     kdialog --title "$DB_TITLE" --msgbox "\nTerminó el proceso importar";
@@ -78,7 +87,7 @@ if [ "$?" = 0 ]; then
                 then
                     DB_PATH=$(kdialog --title "$DB_TITLE" --getexistingdirectory *);
                     if [ "$?" = 0 ]; then
-                        DB_ARRAY=($(mysql -u$DB_USER -p$DB_PASSWORD -P$DB_PORT -h$DB_HOST -e "SHOW DATABASES;"))
+                        DB_ARRAY=($("$DB_MYSQL" -u$DB_USER -p$DB_PASSWORD -P$DB_PORT -h$DB_HOST "$DB_ENCRYPT" -e "SHOW DATABASES;"))
                         DB_ALL=()
                         for db in "${DB_ARRAY[@]}"; do
                             if [[
@@ -102,16 +111,16 @@ if [ "$?" = 0 ]; then
                             i=0
                             for database in ${DB_SELECTED[@]}; do
                                 sleep 1;
-                                qdbus $progress Set "" value $i > /dev/null;
-                                qdbus $progress setLabelText "SERVIDOR: ${DB_HOST^^}<br><br>Exportando: $database" > /dev/null;
-                                if ! qdbus $progress Set "" value $i > /dev/null; then
+                                "$DB_QDBUS" $progress Set "" value $i > /dev/null;
+                                "$DB_QDBUS" $progress setLabelText "SERVIDOR: ${DB_HOST^^}<br><br>Exportando: $database" > /dev/null;
+                                if ! "$DB_QDBUS" $progress Set "" value $i > /dev/null; then
                                     echo "Process cancelled."
                                     kdialog --error "Proceso cancelado."
-                                    qdbus $progress close
+                                    "$DB_QDBUS" $progress close
                                     exit 1
                                 fi
                                 echo -e "\nDatabase \"$database\" exporting"
-                                mysqldump -u"$DB_USER" -p"$DB_PASSWORD" -P"$DB_PORT" -h"$DB_HOST" -f "$database" > "$DB_PATH/$database.sql"
+                                "$DB_DUMP" -u"$DB_USER" -p"$DB_PASSWORD" -P"$DB_PORT" -h"$DB_HOST" "$DB_ENCRYPT" -f "$database" > "$DB_PATH/$database.sql"
                                 if [ $? -eq 0 ]; then
                                     echo "Database \"$database\" exported"
                                 else
@@ -120,10 +129,10 @@ if [ "$?" = 0 ]; then
                                 ((i++))
                             done
                             echo -e "\nCompressing. . ."
-                            qdbus $progress setLabelText "Comprimiendo. . ." > /dev/null;
+                            "$DB_QDBUS" $progress setLabelText "Comprimiendo. . ." > /dev/null;
                             cd "$DB_PATH" && tar -czvf $(date "+%Y%m%d_%H%M")_"$DB_HOST".tar.gz -C "$DB_PATH" *.sql --remove-files
                             sleep 1;
-                            qdbus $progress close > /dev/null;
+                            "$DB_QDBUS" $progress close > /dev/null;
                         fi
                     else
                         echo "Error selecting a path"
@@ -133,7 +142,7 @@ if [ "$?" = 0 ]; then
                     kdialog --title "$DB_TITLE" --msgbox "\nTerminó el proceso exportar";
                 elif [ "$DB_PROCESS" == "Eliminar" ]
                 then
-                    DB_ARRAY=($(mysql -u$DB_USER -p$DB_PASSWORD -P$DB_PORT -h$DB_HOST -e "SHOW DATABASES;"))
+                    DB_ARRAY=($("$DB_MYSQL" -u$DB_USER -p$DB_PASSWORD -P$DB_PORT -h$DB_HOST -e "SHOW DATABASES;"))
                     DB_ALL=()
                     for db in "${DB_ARRAY[@]}"; do
                         if [[
@@ -159,16 +168,16 @@ if [ "$?" = 0 ]; then
                             i=0
                             for database in ${DB_SELECTED[@]}; do
                                 sleep 1;
-                                qdbus $progress Set "" value $i > /dev/null;
-                                qdbus $progress setLabelText "SERVIDOR: ${DB_HOST^^}<br><br>Eliminando: $database" > /dev/null;
-                                if ! qdbus $progress Set "" value $i > /dev/null; then
+                                "$DB_QDBUS" $progress Set "" value $i > /dev/null;
+                                "$DB_QDBUS" $progress setLabelText "SERVIDOR: ${DB_HOST^^}<br><br>Eliminando: $database" > /dev/null;
+                                if ! "$DB_QDBUS" $progress Set "" value $i > /dev/null; then
                                     echo "Process cancelled."
                                     kdialog --error "Proceso cancelado."
-                                    qdbus $progress close
+                                    "$DB_QDBUS" $progress close
                                     exit 1
                                 fi
                                 echo -e "\nDatabase \"$database\" deleting"
-                                mysqladmin -u "$DB_USER" -p"$DB_PASSWORD" -P"$DB_PORT" -h"$DB_HOST" -f drop "$database" 2>/dev/null || true
+                                "$DB_ADMIN" -u "$DB_USER" -p"$DB_PASSWORD" -P"$DB_PORT" -h"$DB_HOST" "$DB_ENCRYPT" -f drop "$database" 2>/dev/null || true
                                 if [ $? -eq 0 ]; then
                                     echo "Database \"$database\" eliminated"
                                 else
@@ -177,7 +186,7 @@ if [ "$?" = 0 ]; then
                                 ((i++))
                             done
                             sleep 1;
-                            qdbus $progress close > /dev/null;
+                            "$DB_QDBUS" $progress close > /dev/null;
                         fi
                     fi
                     echo -e "\nThe deletion process has ended"
